@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solow Model Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff7fb;--card:#ffffff;--ink:#4a4458;--mute:#8a8398;--line:#f0e3ee;
+--pink:#f7a8c8;--blue:#9ccbf5;--mint:#9fe0c4;--lav:#c9b8f0;--peach:#ffd3a8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#241f2e;--card:#2f2940;--ink:#f1ecfa;--mute:#b3aac6;--line:#443b58}}
+:root[data-theme="dark"]{--bg:#241f2e;--card:#2f2940;--ink:#f1ecfa;--mute:#b3aac6;--line:#443b58}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Kanit',system-ui,sans-serif;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 48px}
+header{background:linear-gradient(135deg,var(--pink),var(--lav));border-radius:24px;padding:22px 24px;color:#3b2f4f}
+header h1{margin:0;font-size:1.6rem;font-weight:600}
+header p{margin:4px 0 0;font-weight:300}
+.card{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:18px 20px;margin-top:16px}
+h2{margin:0 0 8px;font-size:1.15rem;font-weight:500}
+.eq{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.eq span{background:var(--bg);border:2px dashed var(--lav);border-radius:14px;padding:4px 12px;font-family:ui-monospace,Menlo,monospace}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+label{display:block;font-weight:500}
+.val{float:right;font-weight:600}
+input[type=range]{width:100%;accent-color:#e58ab4}
+.hint{font-size:.85rem;color:var(--mute);font-weight:300}
+.btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+button{font-family:inherit;font-size:.95rem;border:0;border-radius:999px;padding:9px 18px;cursor:pointer;color:#3b2f4f;background:var(--blue);transition:transform .15s}
+button:hover{transform:translateY(-2px) scale(1.03)}
+button.pk{background:var(--pink)}button.mn{background:var(--mint)}button.pc{background:var(--peach)}button.lv{background:var(--lav)}
+button.on{outline:3px solid #e58ab4}
+.out{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.box{border-radius:18px;padding:12px 14px;text-align:center}
+.box b{display:block;font-size:1.6rem;font-weight:600;color:#3b2f4f}
+.box small{color:#5d5270}
+.b1{background:var(--pink)}.b2{background:var(--blue)}.b3{background:var(--mint)}.b4{background:var(--peach)}
+canvas{width:100%;height:auto;aspect-ratio:16/10;display:block;border-radius:14px;background:var(--bg)}
+.chartwrap{overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.9rem;margin-top:6px}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.note{margin-top:10px;padding:10px 14px;border-radius:14px;background:var(--bg);border:2px dashed var(--peach)}
+ul{margin:6px 0 0 18px;padding:0}
+footer{text-align:center;color:var(--mute);font-size:.8rem;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>✨ Solow Model Simulator</h1>
+  <p id="who"></p>
+  <p>888121 Digital Economy · ภาคเรียนที่ 1/2569</p>
+</header>
+
+<section class="card">
+  <h2>แบบจำลองนี้คืออะไร</h2>
+  <div class="eq"><span>Y = A·√K</span><span>I = s·Y</span><span>D = δ·K</span><span>ΔK = I − D</span></div>
+  <p><b>K</b> คือทุนต่อแรงงานที่มีประสิทธิภาพ (capital per effective worker, eL) ยิ่งมีทุนมาก ผลผลิต Y ก็ยิ่งสูง แต่เพิ่มขึ้นช้าลงเรื่อย ๆ เพราะมีรากที่สอง ทุนเปลี่ยนไปในแต่ละช่วงเท่ากับการลงทุนลบค่าเสื่อม
+  <b>steady state</b> คือจุดที่ I = D ทุนจึงหยุดเปลี่ยน</p>
+  <ul>
+    <li><b>I = s·Y (การลงทุน, Investment)</b> ผลผลิตส่วนที่ออมแล้วนำไปสร้างทุนใหม่ เป็นแรง <b>เพิ่ม</b> ทุน</li>
+    <li><b>D = δ·K (ค่าเสื่อม, Depreciation)</b> ทุนที่สึกหรอหรือล้าสมัยในแต่ละช่วง เป็นแรง <b>ลด</b> ทุน ถ้า I &gt; D ทุนโต ถ้า I &lt; D ทุนลด ถ้า I = D ทุนนิ่ง (steady state)</li>
+    <li><b>s (อัตราการออม)</b> เพิ่ม s → การลงทุน I สูงขึ้น → ทุนเพิ่ม และ K* สูงขึ้น</li>
+    <li><b>δ (อัตราค่าเสื่อม)</b> เพิ่ม δ → ทุนสึกหรอเร็วขึ้น → ทุนลด และ K* ต่ำลง</li>
+    <li><b>A (เทคโนโลยี ความรู้ นวัตกรรม)</b> เพิ่ม A → ได้ผลผลิตมากขึ้นจากทุนเท่าเดิม → I สูงขึ้น และ K* สูงขึ้น</li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2>ปรับค่าพารามิเตอร์</h2>
+  <div class="grid">
+    <div><label>s อัตราการออม <span class="val" id="vs"></span></label><input id="s" type="range" min="0.05" max="0.6" step="0.001" value="0.3"></div>
+    <div><label>δ อัตราค่าเสื่อม <span class="val" id="vd"></span></label><input id="d" type="range" min="0.005" max="0.1" step="0.0005" value="0.02"></div>
+    <div><label>A เทคโนโลยี (ค่าฐาน) <span class="val" id="vA"></span></label><input id="A" type="range" min="0.5" max="6" step="0.05" value="2.6"></div>
+  </div>
+  <div class="btns">
+    <button class="mn" id="bSlide">ค่าในสไลด์ (0.3 / 0.02 / 2.6)</button>
+    <button class="lv" id="bMine">ค่าตั้งต้นของฉัน</button>
+    <button class="pk" id="bAI">🤖 ประเทศไทยนำ AI มาใช้ (A +20%)</button>
+    <button class="pc" id="bPlay">▶ จำลองการเดินทางของ K</button>
+  </div>
+  <div class="hint" id="msg" style="margin-top:8px"></div>
+</section>
+
+<section class="card">
+  <h2>ผลลัพธ์ (ทศนิยม 3 ตำแหน่ง)</h2>
+  <div class="out">
+    <div class="box b1"><small>K* (ทุนที่ steady state)</small><b id="oK"></b></div>
+    <div class="box b2"><small>Y* (ผลผลิต)</small><b id="oY"></b></div>
+    <div class="box b3"><small>I* = D* (การลงทุน = ค่าเสื่อม)</small><b id="oI"></b></div>
+  </div>
+  <div class="note" id="aiBox" hidden></div>
+</section>
+
+<details class="card" id="how">
+  <summary style="cursor:pointer;font-weight:500;font-size:1.15rem">🔍 ดูวิธีคิด (ค่าตั้งต้นจากรหัสนักศึกษา และสูตร steady state)</summary>
+  <div id="howBody" style="margin-top:10px"></div>
+</details>
+
+<section class="card">
+  <h2>กราฟ</h2>
+  <div class="chartwrap"><canvas id="cv" width="900" height="560"></canvas></div>
+  <div class="legend">
+    <span><i style="background:#7fb6ea"></i>Y = A√K</span>
+    <span><i style="background:#e58ab4"></i>I = sY</span>
+    <span><i style="background:#58c49a"></i>D = δK</span>
+    <span><i style="background:#f0a860"></i>เส้นเดิมก่อนมี AI (เส้นประ)</span>
+  </div>
+</section>
+
+<footer>สร้างด้วย Claude · สมการตามสไลด์วิชา 888121</footer>
+</div>
+
+<script>
+// ===== แก้ 2 บรรทัดนี้ =====
+const STUDENT_NAME = "นางสาวภัทรสุดา สุขเกษม";
+const STUDENT_ID = "671610315";
+// ==========================
+
+const $ = id => document.getElementById(id);
+document.getElementById('who').textContent = STUDENT_NAME + " · รหัสนักศึกษา " + (STUDENT_ID || "—");
+
+const st = {s:0.3, d:0.02, A:2.6, ai:false, kdot:null, anim:null};
+const eff = () => st.A * (st.ai ? 1.2 : 1);
+const Yf = (A,K) => A*Math.sqrt(K);
+const steady = (s,d,A) => { const r = s*A/d; const K = r*r; return {K, Y:A*Math.sqrt(K), I:s*A*Math.sqrt(K)}; };
+
+function myValues(){
+  if(!/^\d{2,}$/.test(STUDENT_ID)) return null;
+  const last = +STUDENT_ID.slice(-1), prev = +STUDENT_ID.slice(-2,-1);
+  return {s:0.20+last*0.02, d:0.02+prev*0.002, A:2.6};
+}
+
+function setInputs(){ $('s').value=st.s; $('d').value=st.d; $('A').value=st.A; }
+function f3(x){ return x.toLocaleString('en-US',{minimumFractionDigits:3,maximumFractionDigits:3}); }
+
+function update(){
+  $('vs').textContent = st.s.toFixed(3);
+  $('vd').textContent = st.d.toFixed(4);
+  $('vA').textContent = st.A.toFixed(2) + (st.ai ? ' → '+eff().toFixed(2) : '');
+  const ss = steady(st.s, st.d, eff());
+  $('oK').textContent = f3(ss.K); $('oY').textContent = f3(ss.Y); $('oI').textContent = f3(ss.I);
+  $('bAI').classList.toggle('on', st.ai);
+  renderHow();
+  const box = $('aiBox');
+  if(st.ai){
+    const b = steady(st.s, st.d, st.A);
+    box.hidden = false;
+    box.innerHTML = '🤖 <b>AI เพิ่ม A ขึ้น 20%</b> (จาก '+st.A.toFixed(2)+' เป็น '+eff().toFixed(2)+')<br>K* เปลี่ยนจาก '+f3(b.K)+' เป็น '+f3(ss.K)+' (เพิ่มขึ้น '+f3(ss.K-b.K)+' หรือ '+((ss.K/b.K-1)*100).toFixed(1)+'%)<br>Y* เปลี่ยนจาก '+f3(b.Y)+' เป็น '+f3(ss.Y)+' (เพิ่มขึ้น '+f3(ss.Y-b.Y)+')';
+  } else box.hidden = true;
+  draw();
+}
+
+function draw(){
+  const cv = $('cv'), c = cv.getContext('2d');
+  const W = cv.width, H = cv.height, m = {l:64,r:20,t:20,b:50};
+  const A = eff(), ss = steady(st.s, st.d, A), base = steady(st.s, st.d, st.A);
+  const Kmax = Math.max(2000, Math.ceil(Math.max(ss.K, st.ai?base.K:0)*1.25/200)*200);
+  const Ymax = Math.max(Yf(A,Kmax), Yf(st.A,Kmax), st.d*Kmax)*1.05;
+  const X = k => m.l + k/Kmax*(W-m.l-m.r);
+  const Yp = y => H-m.b - y/Ymax*(H-m.t-m.b);
+  const cs = getComputedStyle(document.documentElement);
+  const ink = cs.getPropertyValue('--ink').trim(), line = cs.getPropertyValue('--line').trim();
+  c.clearRect(0,0,W,H);
+  c.font = '14px Kanit, sans-serif'; c.fillStyle = ink; c.strokeStyle = line; c.lineWidth = 1;
+  const step = Kmax/5;
+  for(let i=0;i<=5;i++){ const k=i*step; c.beginPath(); c.moveTo(X(k),m.t); c.lineTo(X(k),H-m.b); c.stroke(); c.textAlign='center'; c.fillText(Math.round(k),X(k),H-m.b+20); }
+  for(let i=0;i<=5;i++){ const y=i*Ymax/5; c.beginPath(); c.moveTo(m.l,Yp(y)); c.lineTo(W-m.r,Yp(y)); c.stroke(); c.textAlign='right'; c.fillText(y.toFixed(0),m.l-8,Yp(y)+5); }
+  c.textAlign='center'; c.fillText('ทุน K', (W+m.l)/2, H-10);
+  const plot = (fn,color,dash,w) => { c.beginPath(); c.setLineDash(dash||[]); c.lineWidth=w||3.5; c.strokeStyle=color;
+    for(let i=0;i<=300;i++){ const k=Kmax*i/300; const x=X(k), y=Yp(fn(k)); i?c.lineTo(x,y):c.moveTo(x,y); } c.stroke(); c.setLineDash([]); };
+  if(st.ai){ plot(k=>Yf(st.A,k),'#f0a860',[6,6],2.5); plot(k=>st.s*Yf(st.A,k),'#f0a860',[6,6],2.5); }
+  plot(k=>Yf(A,k),'#7fb6ea');
+  plot(k=>st.s*Yf(A,k),'#e58ab4');
+  plot(k=>st.d*k,'#58c49a');
+  // steady state
+  c.setLineDash([4,4]); c.strokeStyle='#b49be0'; c.lineWidth=2;
+  c.beginPath(); c.moveTo(X(ss.K),Yp(ss.I)); c.lineTo(X(ss.K),H-m.b); c.stroke(); c.setLineDash([]);
+  c.beginPath(); c.arc(X(ss.K),Yp(ss.I),9,0,7); c.fillStyle='#ffd3a8'; c.fill(); c.lineWidth=3; c.strokeStyle='#b49be0'; c.stroke();
+  c.fillStyle=ink; c.textAlign='left'; c.fillText('K* = '+ss.K.toFixed(1), Math.min(X(ss.K)+12, W-170), Yp(ss.I)-14);
+  // moving K dot
+  if(st.kdot!=null){ const k=st.kdot; c.beginPath(); c.arc(X(k),Yp(st.s*Yf(A,k)),7,0,7); c.fillStyle='#e58ab4'; c.fill(); }
+}
+
+function renderHow(){
+  const v = myValues(), A = eff(), ss = steady(st.s, st.d, A), r = st.s*A/st.d;
+  let h = '';
+  if(v){
+    const id = STUDENT_ID, last = id.slice(-1), prev = id.slice(-2,-1);
+    h += '<div class="note"><b>1) ค่าตั้งต้นจากรหัสนักศึกษา</b><br>รหัส '+id.slice(0,-2)+'<b>'+prev+last+'</b> → หลักรองสุดท้าย = <b>'+prev+'</b>, หลักสุดท้าย = <b>'+last+'</b><br>'
+      + 's = 0.20 + ('+last+' × 0.02) = <b>'+v.s.toFixed(3)+'</b><br>'
+      + 'δ = 0.02 + ('+prev+' × 0.002) = <b>'+v.d.toFixed(3)+'</b><br>'
+      + 'A = 2.6</div>';
+  } else h += '<div class="note">ยังไม่ได้ใส่รหัสนักศึกษา</div>';
+  h += '<div class="note" style="margin-top:10px"><b>2) หา steady state ด้วยค่าที่ตั้งอยู่ตอนนี้ (s = '+st.s.toFixed(3)+', δ = '+st.d.toFixed(3)+', A = '+A.toFixed(2)+')</b><br>'
+    + 'steady state: I = D → s·A·√K = δ·K → √K = sA/δ<br>'
+    + 'sA/δ = ('+st.s.toFixed(3)+' × '+A.toFixed(2)+') / '+st.d.toFixed(3)+' = <b>'+r.toFixed(4)+'</b><br>'
+    + 'K* = ('+r.toFixed(4)+')² = <b>'+f3(ss.K)+'</b><br>'
+    + 'Y* = A·√K* = '+A.toFixed(2)+' × '+r.toFixed(4)+' = <b>'+f3(ss.Y)+'</b><br>'
+    + 'I* = s·Y* = '+st.s.toFixed(3)+' × '+f3(ss.Y)+' = <b>'+f3(ss.I)+'</b><br>'
+    + 'D* = δ·K* = '+st.d.toFixed(3)+' × '+f3(ss.K)+' = <b>'+f3(st.d*ss.K)+'</b> (เท่ากับ I* จึงเป็น steady state)</div>';
+  $('howBody').innerHTML = h;
+}
+
+function stopAnim(){ if(st.anim){ cancelAnimationFrame(st.anim); st.anim=null; } }
+function play(){
+  stopAnim(); st.kdot = 100; $('bPlay').textContent='⏸ หยุด';
+  let last = 0;
+  const tick = t => {
+    if(t-last>40){ last=t; const A=eff(); st.kdot += st.s*Yf(A,st.kdot) - st.d*st.kdot; draw();
+      const ss=steady(st.s,st.d,A); if(Math.abs(st.kdot-ss.K)<0.05){ st.anim=null; $('bPlay').textContent='▶ จำลองการเดินทางของ K'; return; } }
+    st.anim = requestAnimationFrame(tick);
+  };
+  st.anim = requestAnimationFrame(tick);
+}
+
+['s','d','A'].forEach(id => $(id).addEventListener('input', e => { st[id]=+e.target.value; stopAnim(); st.kdot=null; $('bPlay').textContent='▶ จำลองการเดินทางของ K'; update(); }));
+$('bSlide').onclick = () => { Object.assign(st,{s:0.3,d:0.02,A:2.6,ai:false}); stopAnim(); st.kdot=null; setInputs(); $('msg').textContent='ตั้งค่าตามสไลด์แล้ว: K* ต้องได้ 1,521 และ Y* ต้องได้ 101.4'; update(); };
+$('bMine').onclick = () => { const v = myValues();
+  if(!v){ $('msg').textContent='ยังไม่ได้ใส่รหัสนักศึกษาในโค้ด (STUDENT_ID)'; return; }
+  Object.assign(st,v,{ai:false}); stopAnim(); st.kdot=null; setInputs(); $('msg').textContent='ค่าตั้งต้นของฉัน: s = '+v.s.toFixed(2)+', δ = '+v.d.toFixed(3)+', A = 2.6'; update(); };
+$('bAI').onclick = () => { st.ai = !st.ai; update(); };
+$('bPlay').onclick = () => { if(st.anim){ stopAnim(); $('bPlay').textContent='▶ จำลองการเดินทางของ K'; } else play(); };
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+(document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(update);
+update();
+</script>
+</body>
+</html>

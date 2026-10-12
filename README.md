@@ -1,1 +1,0 @@
-# Solow-Model-Web-Simulator
